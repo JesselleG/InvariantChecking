@@ -19,6 +19,10 @@ public class TransitionSystem {
    protected Set<Transition> setTransitions;
    protected Map<State, Set<Transition>> adjacencyList; 
    protected State initialState;
+   
+   protected Set<State> reachableStates;
+   protected Stack<State> stackStates;  //to be treated as a stack
+   protected boolean b; //states in R statisfy φ
 
    public static void main(String[] args)
    {  TransitionSystem graph = new TransitionSystem();
@@ -28,6 +32,7 @@ public class TransitionSystem {
       State s3 = graph.addState("s3","b");
       State s4 = graph.addState("s4","b");
 
+      graph.setInitState(s0);
       //G = gamma, A = alpha, B = beta
       graph.addTransitions(s0, s1, "G");
       graph.addTransitions(s1, s1, "A");
@@ -49,6 +54,26 @@ public class TransitionSystem {
        this.setStates = new HashSet<>();
        this.setTransitions = new HashSet<>();
        this.adjacencyList = new HashMap<>();
+   }
+      
+   public String invariantCheck(){
+       reachableStates = new HashSet<>();
+       stackStates = new Stack();
+       stackStates.push(initialState); //assuming that initial state has been declared
+       b = true;
+       do{
+           visit(initialState);
+       }while(!stackStates.empty()&&b);
+       if(b) return "yes";
+       else return "no";
+   }
+   
+   public void visit(State initState){
+       stackStates.push(initState);
+       reachableStates.add(initState);
+       //repeat
+       State s = stackStates.peek();
+      // if()
    }
    
    public void setInitState(State s0){
