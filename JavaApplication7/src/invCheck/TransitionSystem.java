@@ -31,7 +31,7 @@ public class TransitionSystem {
       State s2 = graph.addState("s2","a,b");
       State s3 = graph.addState("s3","b");
       State s4 = graph.addState("s4","b");
-
+      
       graph.setInitState(s0);
       //G = gamma, A = alpha, B = beta
       graph.addTransitions(s0, s1, "G");
@@ -45,9 +45,8 @@ public class TransitionSystem {
       graph.addTransitions(s0, s2, "A");
       
       System.out.println("Example Graph:\n" + graph);
-//      System.out.println("Performing depth-first search from D:");
-//      searcher.search(d);
-//      System.out.println(list);
+      System.out.println("Performing depth-first search from D:");
+      graph.invariantCheck();
    }
    
    public TransitionSystem(){
@@ -55,11 +54,10 @@ public class TransitionSystem {
        this.setTransitions = new HashSet<>();
        this.adjacencyList = new HashMap<>();
    }
-      
+         
    public String invariantCheck(){
-       reachableStates = new HashSet<>();
        stackStates = new Stack();
-       stackStates.push(initialState); //assuming that initial state has been declared
+       reachableStates = new HashSet<>();
        b = true;
        do{
            visit(initialState);
@@ -71,9 +69,35 @@ public class TransitionSystem {
    public void visit(State initState){
        stackStates.push(initState);
        reachableStates.add(initState);
-       //repeat
-       State s = stackStates.peek();
-      // if()
+       do{
+           State s = stackStates.peek();
+
+           ArrayList<State> next = s.getConnectingStates();
+           for(int i = 0;i<next.size();i++){
+               if(!stackStates.contains(next.get(i))){
+                    stackStates.push(next.get(i));
+               }
+           }
+           
+            if(reachableStates.contains(stackStates.peek())){
+                State check = stackStates.pop();
+                //check propositional form
+                System.out.println(check);
+                System.out.println("if");
+            }
+            else{
+                State ss = stackStates.peek();
+                 ArrayList<State> sss = ss.getConnectingStates();
+                for(int i = 0;i<sss.size();i++){
+                   if(!stackStates.contains(sss.get(i))){
+                     stackStates.push(sss.get(i));
+                     reachableStates.add(sss.get(i));                       
+                   }
+                }
+            }
+            System.out.println(reachableStates);
+            System.out.println(stackStates);
+       }while(!stackStates.empty()||b);
    }
    
    public void setInitState(State s0){
@@ -102,7 +126,7 @@ public class TransitionSystem {
    public String toString()
    {  String output = "Graph:\n";
       for (State s : setStates)
-         output += "" + s + " has edges:"
+         output += "" + s + " has transitions:"
             + adjacencyList.get(s) + "\n";
       return output;
    }
@@ -128,8 +152,8 @@ public class TransitionSystem {
            return adjacencyList.get(this);
        }
        
-       public Set<State> getConnectingStates(){
-           Set<State> states = new HashSet<State>();
+       public ArrayList<State> getConnectingStates(){
+           ArrayList<State> states = new ArrayList<State>();
            for(Transition t : adjacencyList.get(this))
                states.add(t.oppositeStates(this));
            return states;

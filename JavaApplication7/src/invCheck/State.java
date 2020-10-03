@@ -9,12 +9,13 @@ package invCheck;
  *
  * @author dqp6065,jbr9093
  */
+import java.util.ArrayList;
 import java.util.Set;
 
 public interface State {
        public String getState();
        public Set<Transition> getTransitions();
-       public Set<State> getConnectingStates();
+       public ArrayList<State> getConnectingStates();
        public boolean isAdjacent(State s);
        public String toString();
 }
