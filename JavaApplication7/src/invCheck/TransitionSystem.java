@@ -59,9 +59,12 @@ public class TransitionSystem {
        stackStates = new Stack();
        reachableStates = new HashSet<>();
        b = true;
-       do{
-           visit(initialState);
-       }while(!stackStates.empty()&&b);
+       while(b && !reachableStates.contains(initialState))
+       {
+            visit(initialState);   
+       }
+           
+       
        if(b) return "yes";
        else return "no";
    }
@@ -69,35 +72,45 @@ public class TransitionSystem {
    public void visit(State initState){
        stackStates.push(initState);
        reachableStates.add(initState);
-       do{
+       while(!stackStates.empty()){
            State s = stackStates.peek();
-
-           ArrayList<State> next = s.getConnectingStates();
-           for(int i = 0;i<next.size();i++){
-               if(!stackStates.contains(next.get(i))){
-                    stackStates.push(next.get(i));
-               }
-           }
+           State postS = null;
            
-            if(reachableStates.contains(stackStates.peek())){
+           ArrayList<State> next = s.getConnectingStates();
+           for(int i = 0;i<next.size();i++)
+           {
+               if(!reachableStates.contains(next.get(i)) || next.get(i) != null)
+                 postS = next.get(i);
+              // System.out.println("YAYAYA POST S ISSSS "+postS);
+           }
+
+          
+            if(reachableStates.contains(postS) || postS == null)
+            {
                 State check = stackStates.pop();
                 //check propositional form
+               // b = (b && )
                 System.out.println(check);
-                System.out.println("if");
             }
-            else{
+            
+            else
+            {   
                 State ss = stackStates.peek();
                  ArrayList<State> sss = ss.getConnectingStates();
-                for(int i = 0;i<sss.size();i++){
-                   if(!stackStates.contains(sss.get(i))){
+                for(int i = 0;i<sss.size();i++)
+                {
+                
+                    if(!stackStates.contains(sss.get(i)) || sss.get(i) != null)
+                    {
                      stackStates.push(sss.get(i));
-                     reachableStates.add(sss.get(i));                       
-                   }
+                     reachableStates.add(sss.get(i));        //add to reachable states               
+                    
+                    }
                 }
             }
-            System.out.println(reachableStates);
             System.out.println(stackStates);
-       }while(!stackStates.empty()||b);
+
+       } //|| !b
    }
    
    public void setInitState(State s0){
