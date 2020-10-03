@@ -28,7 +28,7 @@ public class TransitionSystem {
    {  TransitionSystem graph = new TransitionSystem();
       State s0 = graph.addState("s0", "a");
       State s1 = graph.addState("s1","a");
-      State s2 = graph.addState("s2","a,b");
+      State s2 = graph.addState("s2","b");
       State s3 = graph.addState("s3","b");
       State s4 = graph.addState("s4","b");
       
@@ -46,7 +46,7 @@ public class TransitionSystem {
       
       System.out.println("Example Graph:\n" + graph);
       System.out.println("Performing depth-first search from D:");
-      graph.invariantCheck();
+      graph.invariantCheck("a OR b");
    }
    
    public TransitionSystem(){
@@ -55,24 +55,24 @@ public class TransitionSystem {
        this.adjacencyList = new HashMap<>();
    }
          
-   public String invariantCheck(){
+   public void invariantCheck(String pf){
        stackStates = new Stack();
        reachableStates = new HashSet<>();
        b = true;
        while(b && !reachableStates.contains(initialState))
        {
-            visit(initialState);   
+            visit(initialState, pf);   
        }
            
        
-       if(b) return "yes";
-       else return "no";
+       if(b) System.out.println("yes");
+       else System.out.println("no");
    }
    
-   public void visit(State initState){
+   public void visit(State initState, String pf){
        stackStates.push(initState);
        reachableStates.add(initState);
-       while(!stackStates.empty()){
+       while(!stackStates.empty()&&b){
            State s = stackStates.peek();
            State postS = null;
            
@@ -89,8 +89,8 @@ public class TransitionSystem {
             {
                 State check = stackStates.pop();
                 //check propositional form
-               // b = (b && )
-                System.out.println(check);
+                checkFormula(check, pf);
+//                System.out.println(check);
             }
             
             else
@@ -100,7 +100,7 @@ public class TransitionSystem {
                 for(int i = 0;i<sss.size();i++)
                 {
                 
-                    if(!stackStates.contains(sss.get(i)) || sss.get(i) != null)
+                    if(!stackStates.contains(sss.get(i)) && sss.get(i) != null)
                     {
                      stackStates.push(sss.get(i));
                      reachableStates.add(sss.get(i));        //add to reachable states               
@@ -108,9 +108,40 @@ public class TransitionSystem {
                     }
                 }
             }
-            System.out.println(stackStates);
+//            System.out.println(stackStates.toString());
+       }
+   }
+   
+   private void checkFormula(State s, String pf){
+       String s_ap = s.getAP(); //a
+       String low_pf = pf.toLowerCase();
 
-       } //|| !b
+       Stack<String> postFix = new Stack<>();
+       String[] tokens = low_pf.split("\\s");
+       for (String token : tokens) {
+           postFix.push(token);
+       }
+       while(!postFix.empty()){
+           String top = postFix.pop();
+           if(top.equals("or")){
+               String ap1 = postFix.pop();
+               String ap2 = postFix.pop();
+//               System.out.println(s+"="+ap1+ap2);
+            b = s_ap.equals(ap1)||s_ap.equals(ap2);
+           }
+           else{
+               if(!postFix.empty()){
+                    String temp = postFix.peek();
+                     if(temp.equals("or")){
+                     temp = postFix.pop();
+
+                     postFix.push(top);
+                     postFix.push(temp);
+                     }
+               }
+           }
+       }
+//       System.out.println(s+" is "+b);
    }
    
    public void setInitState(State s0){

@@ -15,6 +15,7 @@ import java.util.Set;
 public interface State {
        public String getState();
        public Set<Transition> getTransitions();
+       public String getAP();
        public ArrayList<State> getConnectingStates();
        public boolean isAdjacent(State s);
        public String toString();
