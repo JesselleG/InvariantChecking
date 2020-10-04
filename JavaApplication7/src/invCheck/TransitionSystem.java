@@ -28,10 +28,10 @@ public class TransitionSystem {
    public static void main(String[] args)
    {  TransitionSystem graph = new TransitionSystem();
       State s0 = graph.addState("s0","a,b");
-      State s1 = graph.addState("s1","a,b");
-      State s2 = graph.addState("s2","a,b");
+      State s1 = graph.addState("s1","a");
+      State s2 = graph.addState("s2","a,c");
       State s3 = graph.addState("s3","a,b");
-      State s4 = graph.addState("s4","a,b");
+      State s4 = graph.addState("s4","a");
       
       graph.setInitState(s0);
       //G = gamma, A = alpha, B = beta
@@ -47,7 +47,7 @@ public class TransitionSystem {
       
       System.out.println("Example Graph:\n" + graph);
       System.out.println("Performing depth-first search from D:");
-      graph.invariantCheck("a and b");
+      graph.invariantCheck("a or !b");
    }
    
    public TransitionSystem(){
@@ -82,7 +82,6 @@ public class TransitionSystem {
            {
                if(!reachableStates.contains(next.get(i)) || next.get(i) != null)
                  postS = next.get(i);
-              // System.out.println("YAYAYA POST S ISSSS "+postS);
            }
 
           
@@ -113,12 +112,13 @@ public class TransitionSystem {
        }
    }
    
+   //checks invariant if the specific state satisfies the condition of pf (phi)
    private void checkFormula(State s, String pf){
-       String correctAP = "";
-       String s_ap = s.getAP(); //a
+       String correctAP = ""; //the label that would be required in order to satisfy phi
+       String[] stateLabels = s.getAP().split(",|\\s|-"); //get the current state's labels (each index is an atomic proposition) 
        String low_pf = pf.toLowerCase();
 
-       ArrayList temp = new ArrayList();
+       ArrayList<String> temp = new ArrayList<>();
        String[] tokens = low_pf.split("\\s|\\(|\\)");
        for (String token : tokens) {
            if (!token.isEmpty()) {
@@ -127,9 +127,11 @@ public class TransitionSystem {
        }
        Stack<String> postFix = new Stack<>();
        for(int i=0;i<temp.size();i++){
-           String t = (String) temp.get(i);
-           if(t.equals("not")){
-               String next = (String) temp.get(i+1);
+           String t = temp.get(i);
+           
+           if(t.equals("not"))  //convert "not" operator to its symbol "!"
+           {    
+               String next = temp.get(i+1);
                postFix.push("!"+next);
                i++;
            }
@@ -137,42 +139,133 @@ public class TransitionSystem {
 
        }
 
-       while(!postFix.empty()){
-           String top = postFix.pop();
+       while(!postFix.empty())
+       {
+           String top = postFix.pop(); //stack (leftmost is top){b, OR, a}
            switch (top) {
                case "or":
                    {
                        System.out.println("Case OR");
+                       boolean ap1_match = false;
+                       boolean ap2_match = false;
+                       String ap1 = postFix.pop();  //a
+             
+                       String ap2 = postFix.pop();  //OR
+                       int i = 0;
+                      
+                       for (String ap : stateLabels)                                 
+                            {
+                                System.out.println("CURRENT AP IS "+ap);
+                                System.out.println("AP 1 IS "+ap1);
+                                if (ap.equalsIgnoreCase(ap1)) 
+                                {                         
+                                   ap1_match = true;
+                                }
+                                if (ap.equalsIgnoreCase(ap2)) 
+                                {                             
+                                   ap2_match = true;
+                                }
+                            }  
                        
-                       String ap1 = postFix.pop();
-                       String ap2 = postFix.pop();
-                       b = s_ap.equals(ap1)||s_ap.equals(ap2);
-                       if(!b) correctAP ="{"+ap1+"}";
+                       if(ap1.contains("!") || ap2.contains("!"))
+                       {                         
+                           b = ((ap1_match && !ap2_match) || (!ap1_match && ap2_match));
+                       }
+                       else 
+                       {
+                           b = ap1_match || ap2_match;
+                       }
+                      
+                       if(!b) correctAP ="{"+ap1+"} or {"+ap2+"}";
                        break;
                    }
                case "and":
                    {
                        System.out.println("Case AND");
-
+                       boolean ap1_match = false; 
+                       boolean ap2_match = false;
                        String ap2 = postFix.pop();
                        String ap1 = postFix.pop();
-                       if(ap2.contains("!")&&ap2.contains("!")){
-                           
-                           String[] ap2_split = ap2.split("\\!");
-                           ap2 = ap2_split[1];
-                           String[] ap1_split = ap1.split("\\!");
-                           ap1 = ap1_split[1];
-                           System.out.println(ap2+ap1);
-                           b=(!s_ap.equals(ap1)&&!s_ap.equals(ap2));
-                           if(!b) correctAP="{"+ap1+"} or {"+ap2+"}";
-                       }
-                       else{
-                           b=(s_ap.equals(ap1+","+ap2))||(s_ap.equals(ap2+","+ap1));
+                       String correct = "";
+                       int cases = -1; // 0 = both operators have NOT, 1 = ap1 has NOT, 2 = ap2 has NOT
+                       if(ap1.contains("!")|| ap2.contains("!"))
+                       {           
+                           if(ap1.contains("!") && ap2.contains("!"))
+                           {    
+                               cases = 0;
+                               String[] ap2_split = ap2.split("!");
+                                ap2 = ap2_split[1];
+
+                                String[] ap1_split = ap1.split("!");
+                                ap1 = ap1_split[1];
+                           }
+                               
+                           else if(ap1.contains("!"))
+                           {                               
+                                cases = 1;
+                                String[] ap1_split = ap1.split("!");
+                                ap1 = ap1_split[1];
+                           }
+                               
+                           else
+                           {
+                                cases = 2;
+                                String[] ap2_split = ap2.split("!");
+                                ap2 = ap2_split[1];
+                           }
+                                                                               
+                              
+                            for (String ap : stateLabels)                                 
+                            {
+                                if (ap.equalsIgnoreCase(ap1)) 
+                                {
+                                   ap1_match = true;
+                                }
+                                if (ap.equalsIgnoreCase(ap2)) 
+                                {
+                                   ap2_match = true;
+                                }
+                            }
+                            
+                            switch(cases)
+                            {
+                                case 0:
+                                {
+                                     b = !ap1_match && !ap2_match;
+                                     correct = "{"+ap1+","+ap2+"}";
+                                     break;
+                                }
+                                case 1:
+                                    b = !ap1_match && ap2_match;
+                                    correct = "{!"+ap1+","+ap2+"}";
+                                    break;
+                                case 2:
+                                    b = ap1_match && !ap2_match;
+                                    correct = "{"+ap1+",!"+ap2+"}";
+                                    break;
+                            }
+                          
+                          
+                           if(!b) correctAP= correct;
+                       }                                                                                                 
+                      
+                       else //both atomic propositions do not have the "NOT operator"
+                       {
+                      
+                          for(String ap : stateLabels)
+                           {    
+                               if(ap.equalsIgnoreCase(ap1))
+                                   ap1_match = true;
+                               if(ap.equalsIgnoreCase(ap2))
+                                   ap2_match = true;
+                           }                 
+                            b = ap1_match && ap2_match;
+                          
                            if(!b) correctAP="{"+ap1+","+ap2+"}";
                        }       
                        break;
                    }
-               case "imp":
+               case "imp": //if current expression is the "IMPLIES ->" operator
                    {
                        System.out.println("Case IMP");
 
@@ -196,18 +289,19 @@ public class TransitionSystem {
 //                       postFix.push("!"+ap1);
 //                       break;
 //                   }
-               default:
+               default: //if expression is an atomic proposition
                    if(!postFix.empty()){
                        String t = postFix.peek();
                        if(t.equals("or")||t.equals("and")||t.equals("imp")||t.equals("not")){
                            t = postFix.pop();
                            
                            postFix.push(top);
-                           postFix.push(t);
+                           postFix.push(t);//push the operator on top of the stack 
                        }
                    }   break;
            }
-           if(!b){
+           if(!b)
+           {
                counterEx += s.toString()+" try: "+correctAP;
            }
        }

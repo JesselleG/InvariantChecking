@@ -7,13 +7,15 @@ package invCheck;
 
 /**
  *
- * @author dqp6065,jbr9093
+ * @author bernie
  */
-import java.util.Set;
-
-public interface Transition {
-       //returns states as a array
-       public State[] endStates();
-       public State oppositeStates(State state);
+public class Driver {
+    
+    public static void main(String[] args) {
+        
        
+       
+    }
+
+     
 }
