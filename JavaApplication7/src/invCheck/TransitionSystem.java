@@ -26,9 +26,9 @@ public class TransitionSystem {
 
    public static void main(String[] args)
    {  TransitionSystem graph = new TransitionSystem();
-      State s0 = graph.addState("s0", "a");
+      State s0 = graph.addState("s0","a");
       State s1 = graph.addState("s1","a");
-      State s2 = graph.addState("s2","b");
+      State s2 = graph.addState("s2","a,b");
       State s3 = graph.addState("s3","b");
       State s4 = graph.addState("s4","b");
       
@@ -46,7 +46,7 @@ public class TransitionSystem {
       
       System.out.println("Example Graph:\n" + graph);
       System.out.println("Performing depth-first search from D:");
-      graph.invariantCheck("a OR b");
+      graph.invariantCheck("a IMP (NOT b)");
    }
    
    public TransitionSystem(){
@@ -117,9 +117,10 @@ public class TransitionSystem {
        String low_pf = pf.toLowerCase();
 
        Stack<String> postFix = new Stack<>();
-       String[] tokens = low_pf.split("\\s");
+       String[] tokens = low_pf.split("\\s|\\(|\\)");
        for (String token : tokens) {
-           postFix.push(token);
+           if(!token.isEmpty())
+               postFix.push(token);
        }
        while(!postFix.empty()){
            String top = postFix.pop();
@@ -129,10 +130,34 @@ public class TransitionSystem {
 //               System.out.println(s+"="+ap1+ap2);
             b = s_ap.equals(ap1)||s_ap.equals(ap2);
            }
+           else if(top.equals("and")){
+               String ap1 = postFix.pop();
+               String ap2 = postFix.pop();
+               
+               b=s_ap.equals(ap1+","+ap2)||s_ap.equals(ap2+","+ap1);
+           }
+           else if(top.equals("imp")){
+               String ap2 = postFix.pop();
+               String ap1 = postFix.pop();
+               
+               if(ap2.contains("!")){
+                    String[] ap2_split = ap2.split("\\!");
+                    ap2 = ap2_split[1];
+                   b=((s_ap.contains(ap1)&&!s_ap.contains(ap2))||(!s_ap.contains(ap1)));
+               }
+               else{
+                   b=((s_ap.contains(ap1)&&s_ap.contains(ap2))||(!s_ap.contains(ap1)));
+               }
+           }
+           else if(top.equals("not")){
+               String ap1 = postFix.pop();
+               
+               postFix.push("!"+ap1);
+           }
            else{
                if(!postFix.empty()){
                     String temp = postFix.peek();
-                     if(temp.equals("or")){
+                     if(temp.equals("or")||temp.equals("and")||temp.equals("imp")||temp.equals("not")){
                      temp = postFix.pop();
 
                      postFix.push(top);
