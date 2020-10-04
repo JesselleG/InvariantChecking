@@ -23,14 +23,15 @@ public class TransitionSystem {
    protected Set<State> reachableStates;
    protected Stack<State> stackStates;  //to be treated as a stack
    protected boolean b; //states in R statisfy φ
+   protected String counterEx;
 
    public static void main(String[] args)
    {  TransitionSystem graph = new TransitionSystem();
-      State s0 = graph.addState("s0","a");
-      State s1 = graph.addState("s1","a");
+      State s0 = graph.addState("s0","a,b");
+      State s1 = graph.addState("s1","a,b");
       State s2 = graph.addState("s2","a,b");
-      State s3 = graph.addState("s3","b");
-      State s4 = graph.addState("s4","b");
+      State s3 = graph.addState("s3","a,b");
+      State s4 = graph.addState("s4","a,b");
       
       graph.setInitState(s0);
       //G = gamma, A = alpha, B = beta
@@ -46,7 +47,7 @@ public class TransitionSystem {
       
       System.out.println("Example Graph:\n" + graph);
       System.out.println("Performing depth-first search from D:");
-      graph.invariantCheck("a IMP (NOT b)");
+      graph.invariantCheck("a and b");
    }
    
    public TransitionSystem(){
@@ -59,14 +60,14 @@ public class TransitionSystem {
        stackStates = new Stack();
        reachableStates = new HashSet<>();
        b = true;
+       counterEx="formula is not satisfied at: ";
        while(b && !reachableStates.contains(initialState))
        {
             visit(initialState, pf);   
        }
-           
-       
+                  
        if(b) System.out.println("yes");
-       else System.out.println("no");
+       else System.out.println("no. "+counterEx);
    }
    
    public void visit(State initState, String pf){
@@ -113,57 +114,101 @@ public class TransitionSystem {
    }
    
    private void checkFormula(State s, String pf){
+       String correctAP = "";
        String s_ap = s.getAP(); //a
        String low_pf = pf.toLowerCase();
 
-       Stack<String> postFix = new Stack<>();
+       ArrayList temp = new ArrayList();
        String[] tokens = low_pf.split("\\s|\\(|\\)");
        for (String token : tokens) {
-           if(!token.isEmpty())
-               postFix.push(token);
+           if (!token.isEmpty()) {
+               temp.add(token);
+           }
        }
+       Stack<String> postFix = new Stack<>();
+       for(int i=0;i<temp.size();i++){
+           String t = (String) temp.get(i);
+           if(t.equals("not")){
+               String next = (String) temp.get(i+1);
+               postFix.push("!"+next);
+               i++;
+           }
+           else postFix.push(t);
+
+       }
+
        while(!postFix.empty()){
            String top = postFix.pop();
-           if(top.equals("or")){
-               String ap1 = postFix.pop();
-               String ap2 = postFix.pop();
-//               System.out.println(s+"="+ap1+ap2);
-            b = s_ap.equals(ap1)||s_ap.equals(ap2);
-           }
-           else if(top.equals("and")){
-               String ap1 = postFix.pop();
-               String ap2 = postFix.pop();
-               
-               b=s_ap.equals(ap1+","+ap2)||s_ap.equals(ap2+","+ap1);
-           }
-           else if(top.equals("imp")){
-               String ap2 = postFix.pop();
-               String ap1 = postFix.pop();
-               
-               if(ap2.contains("!")){
-                    String[] ap2_split = ap2.split("\\!");
-                    ap2 = ap2_split[1];
-                   b=((s_ap.contains(ap1)&&!s_ap.contains(ap2))||(!s_ap.contains(ap1)));
-               }
-               else{
-                   b=((s_ap.contains(ap1)&&s_ap.contains(ap2))||(!s_ap.contains(ap1)));
-               }
-           }
-           else if(top.equals("not")){
-               String ap1 = postFix.pop();
-               
-               postFix.push("!"+ap1);
-           }
-           else{
-               if(!postFix.empty()){
-                    String temp = postFix.peek();
-                     if(temp.equals("or")||temp.equals("and")||temp.equals("imp")||temp.equals("not")){
-                     temp = postFix.pop();
+           switch (top) {
+               case "or":
+                   {
+                       System.out.println("Case OR");
+                       
+                       String ap1 = postFix.pop();
+                       String ap2 = postFix.pop();
+                       b = s_ap.equals(ap1)||s_ap.equals(ap2);
+                       if(!b) correctAP ="{"+ap1+"}";
+                       break;
+                   }
+               case "and":
+                   {
+                       System.out.println("Case AND");
 
-                     postFix.push(top);
-                     postFix.push(temp);
-                     }
-               }
+                       String ap2 = postFix.pop();
+                       String ap1 = postFix.pop();
+                       if(ap2.contains("!")&&ap2.contains("!")){
+                           
+                           String[] ap2_split = ap2.split("\\!");
+                           ap2 = ap2_split[1];
+                           String[] ap1_split = ap1.split("\\!");
+                           ap1 = ap1_split[1];
+                           System.out.println(ap2+ap1);
+                           b=(!s_ap.equals(ap1)&&!s_ap.equals(ap2));
+                           if(!b) correctAP="{"+ap1+"} or {"+ap2+"}";
+                       }
+                       else{
+                           b=(s_ap.equals(ap1+","+ap2))||(s_ap.equals(ap2+","+ap1));
+                           if(!b) correctAP="{"+ap1+","+ap2+"}";
+                       }       
+                       break;
+                   }
+               case "imp":
+                   {
+                       System.out.println("Case IMP");
+
+                       String ap2 = postFix.pop();
+                       String ap1 = postFix.pop();
+                       if(ap2.contains("!")){
+                           String[] ap2_split = ap2.split("\\!");
+                           ap2 = ap2_split[1];
+                           b=((s_ap.contains(ap1)&&!s_ap.contains(ap2))||(!s_ap.contains(ap1)));
+                           if(!b) correctAP="{"+ap1+"} or {"+ap2+"}";
+                       }
+                       else{
+                           b=((s_ap.contains(ap1)&&s_ap.contains(ap2))||(!s_ap.contains(ap1)));
+                           
+                           if(!b) correctAP="{"+ap2+"} or {"+ap1+","+ap2+"}";
+                       }       break;
+                   }
+//               case "not":
+//                   {
+//                       String ap1 = postFix.pop();
+//                       postFix.push("!"+ap1);
+//                       break;
+//                   }
+               default:
+                   if(!postFix.empty()){
+                       String t = postFix.peek();
+                       if(t.equals("or")||t.equals("and")||t.equals("imp")||t.equals("not")){
+                           t = postFix.pop();
+                           
+                           postFix.push(top);
+                           postFix.push(t);
+                       }
+                   }   break;
+           }
+           if(!b){
+               counterEx += s.toString()+" try: "+correctAP;
            }
        }
 //       System.out.println(s+" is "+b);
