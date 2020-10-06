@@ -27,10 +27,10 @@ public class TransitionSystem {
 
    public static void main(String[] args)
    {  TransitionSystem graph = new TransitionSystem();
-      State s0 = graph.addState("s0","a");
-      State s1 = graph.addState("s1","a");
-      State s2 = graph.addState("s2","a,b");
-      State s3 = graph.addState("s3","");
+      State s0 = graph.addState("s0","b");
+      State s1 = graph.addState("s1","b,a");
+      State s2 = graph.addState("s2","a");
+      State s3 = graph.addState("s3","a,b");
       State s4 = graph.addState("s4","a");
       
       graph.setInitState(s0);
@@ -47,7 +47,7 @@ public class TransitionSystem {
       
       System.out.println("Example Graph:\n" + graph);
       System.out.println("Performing depth-first search from D:");
-      graph.invariantCheck("a IMP !b");
+      graph.invariantCheck("a imp !b");
    }
    
    public TransitionSystem(){
@@ -115,9 +115,13 @@ public class TransitionSystem {
    //checks invariant if the specific state satisfies the condition of pf (phi)
    private void checkFormula(State s, String pf){
        String correctAP = ""; //the label that would be required in order to satisfy phi
-       String[] stateLabels = s.getAP().split(",|\\s|-"); //get the current state's labels (each index is an atomic proposition) 
+       String[] stateLabels = s.getAP().split(",|-[\\s]*"); //get the current state's labels (each index is an atomic proposition) 
+       for(int i = 0; i < stateLabels.length; i++)
+       {
+           stateLabels[i] = stateLabels[i].replaceAll("\\s",""); //remove extra space in AP's
+       }
        String low_pf = pf.toLowerCase();
-
+       
        ArrayList<String> temp = new ArrayList<>();
        String[] tokens = low_pf.split("\\s|\\(|\\)");
        for (String token : tokens) {

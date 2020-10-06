@@ -63,7 +63,7 @@ public class tsExample_yes {
       
       System.out.println("Example Graph:\n" + graph);
       System.out.println("Performing depth-first search from D:");
-      graph.invariantCheck("(NOT win1) AND (NOT win2)");
+      graph.invariantCheck("win1");
    }
     
 }
