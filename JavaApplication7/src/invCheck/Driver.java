@@ -13,7 +13,11 @@ public class Driver {
     
     public static void main(String[] args) {
         
+       String s = "s,3";
        
+       String[] st = s.split(",");
+       
+        System.out.println(st.length);
        
     }
 

@@ -27,10 +27,10 @@ public class TransitionSystem {
 
    public static void main(String[] args)
    {  TransitionSystem graph = new TransitionSystem();
-      State s0 = graph.addState("s0","a,b");
+      State s0 = graph.addState("s0","a");
       State s1 = graph.addState("s1","a");
-      State s2 = graph.addState("s2","a,c");
-      State s3 = graph.addState("s3","a,b");
+      State s2 = graph.addState("s2","a,b");
+      State s3 = graph.addState("s3","");
       State s4 = graph.addState("s4","a");
       
       graph.setInitState(s0);
@@ -47,7 +47,7 @@ public class TransitionSystem {
       
       System.out.println("Example Graph:\n" + graph);
       System.out.println("Performing depth-first search from D:");
-      graph.invariantCheck("a or !b");
+      graph.invariantCheck("a IMP !b");
    }
    
    public TransitionSystem(){
@@ -145,18 +145,21 @@ public class TransitionSystem {
            switch (top) {
                case "or":
                    {
+
                        System.out.println("Case OR");
                        boolean ap1_match = false;
                        boolean ap2_match = false;
-                       String ap1 = postFix.pop();  //a
-             
-                       String ap2 = postFix.pop();  //OR
-                       int i = 0;
-                      
+                       String ap2 = postFix.pop();            
+                       String ap1 = postFix.pop();  
+                       if(stateLabels[0].equalsIgnoreCase("null"))
+                       {
+                           b = false;
+                           correctAP ="{"+ap1+"} or {"+ap2+"}";
+                           break;
+                       }
+
                        for (String ap : stateLabels)                                 
                             {
-                                System.out.println("CURRENT AP IS "+ap);
-                                System.out.println("AP 1 IS "+ap1);
                                 if (ap.equalsIgnoreCase(ap1)) 
                                 {                         
                                    ap1_match = true;
@@ -175,17 +178,26 @@ public class TransitionSystem {
                        {
                            b = ap1_match || ap2_match;
                        }
-                      
+
+
                        if(!b) correctAP ="{"+ap1+"} or {"+ap2+"}";
                        break;
                    }
                case "and":
                    {
+
                        System.out.println("Case AND");
                        boolean ap1_match = false; 
                        boolean ap2_match = false;
                        String ap2 = postFix.pop();
                        String ap1 = postFix.pop();
+                       if(stateLabels[0].equalsIgnoreCase("null"))
+                       {
+                           b = false;
+                           correctAP ="{"+ap1+"} or {"+ap2+"}";
+                           break;
+                       }
+                       
                        String correct = "";
                        int cases = -1; // 0 = both operators have NOT, 1 = ap1 has NOT, 2 = ap2 has NOT
                        if(ap1.contains("!")|| ap2.contains("!"))
@@ -263,26 +275,122 @@ public class TransitionSystem {
                           
                            if(!b) correctAP="{"+ap1+","+ap2+"}";
                        }       
+                       
                        break;
                    }
                case "imp": //if current expression is the "IMPLIES ->" operator
                    {
-                       System.out.println("Case IMP");
+                        System.out.println("Case IMP");
+                        Arrays.sort(stateLabels);
+                        String correctLabel = "";
+                        String ap2 = postFix.pop();
+                        String ap1 = postFix.pop();
+                        if(!ap1.contains("!") && !ap2.contains("!"))// then a IMP b
+                        {
+                            if(stateLabels[0].equalsIgnoreCase("null"))// then !a and !b, where F & F = TRUE (state label is empty {} )
+                            {
+                                b = true;
+                            }
+                            else if(stateLabels.length == 1 || stateLabels.length == 0) //then check which label matches which AP
+                            {
+                                if(stateLabels[0].equalsIgnoreCase(ap2)) //{b}
+                                {   // F & T = TRUE
+                                    b = true;
+                                }
+                                else if (stateLabels[0].equalsIgnoreCase(ap1)) //{a}
+                                {   // T & F = FALSE
+                                    b = false;
+                                    correctLabel = "{"+ap1+","+ap2+"}";
+                                }
+                            }
+                            else if(stateLabels.length == 2) //{a,b}
+                            {
+                                //T & T = TRUE
+                                b = true;
+                                
+                            }
+                        }
+                        else if(!ap1.contains("!") && ap2.contains("!"))// a imp !b
+                        {
+                            if(stateLabels[0].equalsIgnoreCase("null"))// then !a and !b, where F & T = TRUE
+                            {
+                                b = true;
+                            }
+                             
+                            else if(stateLabels.length == 1 || stateLabels.length == 0) //then check which label matches which AP
+                            {
+                                if(stateLabels[0].equalsIgnoreCase(ap2))  //{b}
+                                {   // F & F = TRUE
+                                    b = true;
+                                }
+                                else if (stateLabels[0].equalsIgnoreCase(ap1))//{a}
+                                {   // T & T = TRUE
+                                    b = true;
+                                }                                                            
+                            }
+                            
+                            else if(stateLabels.length == 2) //{a,b}
+                            {
+                                //T & F = FALSE;
+                                b = false;           
+                                correctLabel = "{"+ap1+","+ap2+"}";
+                           }
+                        }
+                        else if(ap1.contains("!") && !ap2.contains("!"))// !a imp b
+                        {
+                            if(stateLabels[0].equalsIgnoreCase("null")) //{}
+                            {   // T & F = FALSE
+                                b = false;    
+                                correctLabel = "{"+ap1+","+ap2+"}";
+                            }
+                            else if(stateLabels.length == 1)
+                            {
+                               if(stateLabels[0].equalsIgnoreCase(ap2))  //{b}
+                                {   // T & T = TRUE
+                                    b = true;
+                                }
+                                else if (stateLabels[0].equalsIgnoreCase(ap1)) // {a}
+                                {   // F & F = TRUE
+                                    b = true;
+                                }                                                                                           
+                            }
+                             
+                            if(stateLabels[0].equalsIgnoreCase(ap2)) //{a,b}
+                            {   //F & T = TRUE
+                                    b = true;
+                            }
+                        }
+                        
+                        else //!a IMP !b
+                        {
+                            if(stateLabels[0].equalsIgnoreCase("null")) // {}
+                            {   //T & T = TRUE
+                                b = true;
+                            }
+                            
+                            else if(stateLabels.length == 1)
+                            {
+                               if(stateLabels[0].equalsIgnoreCase(ap2))// {b} 
+                                {   // T & F = FALSE
+                                    b = false;
+                                    correctLabel = "{"+ap1+","+ap2+"}";
+                                }
+                                else if (stateLabels[0].equalsIgnoreCase(ap1)) //{a}
+                                {   // F & T = TRUE
+                                    b = true;
+                                }                                                            
+                                
+                            }
+                            else if(stateLabels.length == 2) //{a,b}
+                            {   //F & F = TRUE
+                                b = true;
+                            }
+                        }
+                        
+                
+                        if(!b) correctAP= correctLabel;
+                    }
 
-                       String ap2 = postFix.pop();
-                       String ap1 = postFix.pop();
-                       if(ap2.contains("!")){
-                           String[] ap2_split = ap2.split("\\!");
-                           ap2 = ap2_split[1];
-                           b=((s_ap.contains(ap1)&&!s_ap.contains(ap2))||(!s_ap.contains(ap1)));
-                           if(!b) correctAP="{"+ap1+"} or {"+ap2+"}";
-                       }
-                       else{
-                           b=((s_ap.contains(ap1)&&s_ap.contains(ap2))||(!s_ap.contains(ap1)));
-                           
-                           if(!b) correctAP="{"+ap2+"} or {"+ap1+","+ap2+"}";
-                       }       break;
-                   }
 //               case "not":
 //                   {
 //                       String ap1 = postFix.pop();
@@ -317,6 +425,8 @@ public class TransitionSystem {
    
    //adds a new state as a string
    public State addState(String s, String AP){
+       if(AP == "")
+           AP = "null"; //indicates that state is empty
        State state = new tsState(s, AP);
        setStates.add(state);
        adjacencyList.put(state, new HashSet<Transition>());
