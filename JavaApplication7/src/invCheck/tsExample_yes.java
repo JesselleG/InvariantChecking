@@ -18,52 +18,46 @@ import invCheck.TransitionSystem;
 public class tsExample_yes {
    public static void main(String[] args)
    {  TransitionSystem graph = new TransitionSystem();
-      State s0 = graph.addState("5,p1","");
-      State s1 = graph.addState("4,p2","");
-      State s2 = graph.addState("3,p2","");
-      State s3 = graph.addState("3,p1","");
-      State s4 = graph.addState("2,p1","");
-      State s5 = graph.addState("2,p1","");
-      State s6 = graph.addState("1,p1","");
-      State s7 = graph.addState("2,p2","");
-      State s8 = graph.addState("1,p2","");
-      State s9 = graph.addState("1,p2","");
-      State s10 = graph.addState("0,p2","win1");
-      State s11 = graph.addState("1,p2","");
-      State s12 = graph.addState("0,p2","win1");
-      State s13 = graph.addState("0,p2","win1");
-      State s14 = graph.addState("1,p1","");
-      State s15 = graph.addState("0,p1","win2");
-      State s16 = graph.addState("0,p1","win2");
-      State s17 = graph.addState("0,p1","win2");
-      State s18 = graph.addState("0,p1","win2");
-      State s19 = graph.addState("0,p2","win1");
+      State s0 = graph.addState("s0","A");
+      State s1 = graph.addState("s1","A");
+      State s2 = graph.addState("s2","B");
+      State s3 = graph.addState("s3","A");
+      State s4 = graph.addState("s4","A,B");
+      State s5 = graph.addState("s5","B");
+      State s6 = graph.addState("s6","B");
+      State s7 = graph.addState("s7","A,B");
+      State s8 = graph.addState("s8","A,B");
+      State s9 = graph.addState("s9","A,B");
+      State s10 = graph.addState("s10","A,B");
+      State s11 = graph.addState("s11","B");
+      State s12 = graph.addState("s12","B");
+      State s13 = graph.addState("s13","A");
+      State s14 = graph.addState("s14","B");
       
       graph.setInitState(s0);
       //G = gamma, A = alpha, B = beta
-      graph.addTransitions(s0, s1, "rm1,na");
-      graph.addTransitions(s0, s2, "rm2,na");
-      graph.addTransitions(s1, s3, "na,rm1");
-      graph.addTransitions(s1, s4, "na,rm2");
-      graph.addTransitions(s2, s5, "na,rm1");
-      graph.addTransitions(s2, s6, "na,rm2");
-      graph.addTransitions(s3, s7, "rm1,na");
-      graph.addTransitions(s3, s8, "rm2,na");
-      graph.addTransitions(s4, s9, "rm1,na");
-      graph.addTransitions(s4, s10, "rm2,na");
-      graph.addTransitions(s5, s11, "rm1,na");
-      graph.addTransitions(s5, s12, "rm2,na");
-      graph.addTransitions(s6, s13, "rm1,na");
-      graph.addTransitions(s7, s14, "na,rm1");
-      graph.addTransitions(s7, s15, "na,rm2");
-      graph.addTransitions(s8, s16, "na,rm1");
-      graph.addTransitions(s9, s10, "na,rm1");
-      graph.addTransitions(s11, s18, "na,rm1");
-      graph.addTransitions(s14, s19, "rm1,na");
+      graph.addTransitions(s0, s1, "");
+      graph.addTransitions(s0, s2, "");
+      graph.addTransitions(s1, s3, "");
+      graph.addTransitions(s1, s5, "");
+      graph.addTransitions(s2, s4, "");
+      graph.addTransitions(s2, s6, "");
+      graph.addTransitions(s3, s7, "");
+      graph.addTransitions(s5, s7, "");
+      graph.addTransitions(s4, s8, "");
+      graph.addTransitions(s6, s8, "");
+      graph.addTransitions(s7, s9, "");
+      graph.addTransitions(s8, s10, "");
+      graph.addTransitions(s8, s11, "");
+      graph.addTransitions(s9, s13, "");
+      graph.addTransitions(s9, s12, "");
+      graph.addTransitions(s12, s14, "");
+      graph.addTransitions(s11, s14, "");
+      graph.addTransitions(s10, s14, "");
       
       System.out.println("Example Graph:\n" + graph);
       System.out.println("Performing depth-first search from D:");
-      graph.invariantCheck("win1");
+      graph.invariantCheck("a or b");
    }
     
 }

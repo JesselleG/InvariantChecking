@@ -7,7 +7,7 @@ package invCheck;
 
 /**
  *
- * @author bernie
+ * @author dqp6065,jbr9093
  */
 public class tsExample_no {
     public static void main(String[] args) {
